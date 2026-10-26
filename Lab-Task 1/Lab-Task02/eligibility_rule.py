@@ -1,68 +1,98 @@
-def evaluate_application(score, documents_complete, age, interview_score):
-    if score < 70:
-        return False, f"Score {score} is below the minimum of 70."
-    if not documents_complete:
-        return False, "Required documents are incomplete."
-    if age < 18:
-        return False, f"Age {age} is below the minimum of 18."
-    if interview_score < 60:
-        return (
-            False,
-            f"Interview score {interview_score} is below the minimum "
-            f"of 60.",
-        )
-    return True, "All four conditions passed."
+class TemperatureController:
+    def __init__(self):
+        self.previous_mode = None
+
+    def determine_mode(self, temperature, occupied):
+        # Occupancy has priority
+        if not occupied:
+            target_mode = "OFF"
+        elif temperature < 18:
+            target_mode = "HEAT"
+        elif temperature > 26:
+            target_mode = "COOL"
+        else:
+            target_mode = "OFF"
+
+        # Check whether the mode has changed
+        send_command = target_mode != self.previous_mode
+
+        # Save the current target mode
+        self.previous_mode = target_mode
+
+        return target_mode, send_command
 
 
+# Create controller
+controller = TemperatureController()
+
+# Test cases
 test_cases = [
     {
-        "name": "Pass",
-        "input": {
-            "score": 82,
-            "documents_complete": True,
-            "age": 22,
-            "interview_score": 75,
-        },
-        "expected": True,
+        "name": "Heating mode",
+        "temperature": 16,
+        "occupied": True
     },
     {
-        "name": "Fail minimum-age condition",
-        "input": {
-            "score": 82,
-            "documents_complete": True,
-            "age": 17,
-            "interview_score": 75,
-        },
-        "expected": False,
+        "name": "Repeated heating mode",
+        "temperature": 16,
+        "occupied": True
     },
     {
-        "name": "Fail interview-score condition",
-        "input": {
-            "score": 82,
-            "documents_complete": True,
-            "age": 22,
-            "interview_score": 59,
-        },
-        "expected": False,
+        "name": "Lower boundary",
+        "temperature": 18,
+        "occupied": True
     },
     {
-        "name": "Score threshold boundary",
-        "input": {
-            "score": 70,
-            "documents_complete": True,
-            "age": 18,
-            "interview_score": 60,
-        },
-        "expected": True,
+        "name": "Upper boundary",
+        "temperature": 26,
+        "occupied": True
     },
+    {
+        "name": "Cooling mode",
+        "temperature": 30,
+        "occupied": True
+    },
+    {
+        "name": "Repeated cooling mode",
+        "temperature": 30,
+        "occupied": True
+    },
+    {
+        "name": "Empty room",
+        "temperature": 16,
+        "occupied": False
+    }
 ]
 
-
+# Run tests
+print("Temperature Control System")
+print("-" * 85)
+print(
+    f"{'Previous Mode':<15}"
+    f"{'Percept':<25}"
+    f"{'Target':<12}"
+    f"{'Outcome'}"
+)
+print("-" * 85)
 
 for case in test_cases:
-    actual, reason = evaluate_application(**case["input"])
-    print(f"\nCase: {case['name']}")
-    print(f"Input: {case['input']}")
-    print(f"Expected result: {case['expected']}")
-    print(f"Actual result: {actual}")
-    print(f"Reason: {reason}")
+    previous_mode = controller.previous_mode
+
+    percept = (
+        f"Temp={case['temperature']}, "
+        f"Occupied={case['occupied']}"
+    )
+
+    target_mode, send_command = controller.determine_mode(
+        case["temperature"],
+        case["occupied"]
+    )
+
+    outcome = "SEND COMMAND" if send_command else "NO COMMAND"
+
+    print(
+        f"{str(previous_mode):<15}"
+        f"{percept:<25}"
+        f"{target_mode:<12}"
+        f"{outcome}"
+    )
